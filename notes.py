@@ -9,12 +9,15 @@ def read_notes(file):
         split = clean_split(line, ',')[:-1]
         if split[-1] == '':
             continue
-
-        notes[(split[0], split[1])] = float(split[2])
+        notes[(split[0], int(split[1]))] = float(split[2])
     return notes
 
 
+# Map notes to frequencies
 notes = read_notes(open('notes.txt'))
+
+# Map frequencies to note tuples
+inv_notes = {v: k for k, v in notes.items()}
 
 if __name__ == '__main__':
     path = 'notes.txt'
