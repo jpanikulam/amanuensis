@@ -52,12 +52,13 @@ def detect_harmonics(note_name, audio_signal, fs):
     times = np.arange(0.0, signal_seconds, T)
 
     fundamental_frequency = notes.notes[note_name]
-    harmonics = range(1, 4 + 1)
+    # harmonics = range(1, 4 + 1)
+    harmonics = [(1.0 / 4.0), (1.0 / 3.0), (1.0 / 2.0), 1.0, 2.0, 3.0]
 
     present_harmonics = np.zeros((audio_signal.shape[0], len(harmonics)))
 
-    for i in harmonics:
-        harmonic_freq = fundamental_frequency * i
+    for i in range(len(harmonics)):
+        harmonic_freq = fundamental_frequency * harmonics[i]
         print harmonic_freq
         likely_note = compare_note(harmonic_freq)[0]
         correlation = compare(harmonic_freq, audio_signal, fs)
@@ -65,13 +66,13 @@ def detect_harmonics(note_name, audio_signal, fs):
         correlation_power = np.sqrt(signal.fftconvolve(np.abs(correlation) ** 2.0, box_filter, 'same'))
         # plt.plot(times, correlation, label='{} [Hz]'.format(harmonic_freq))
         # plt.plot(times[::100], correlation_power[::100], label='${}$ : {} [Hz]'.format(likely_note, harmonic_freq))
-        present_harmonics[:, i - 1] = correlation_power
+        present_harmonics[:, i] = correlation_power
 
-    f, axes = plt.subplots(4, 1, sharex=True)
+    f, axes = plt.subplots(len(harmonics), 1, sharex=True)
     plt.title(note_name)
-    for i in harmonics:
-        axes[i - 1].plot(times, present_harmonics[:, i - 1], label="{}".format(i))
-        axes[i - 1].set_ylim([0.0, 400e3])
+    for i in range(len(harmonics)):
+        axes[i].plot(times, present_harmonics[:, i], label="{}".format(harmonics[i]))
+        axes[i].set_ylim([0.0, 400e3])
         # min_power = 0.7 * np.max(present_harmonics[:, i - 1])
         # min_power = np.percentile(present_harmonics[:, i - 1], 70.0)
         # axes[i - 1].plot(times, present_harmonics[:, i - 1] > min_power, label="{}".format(i))
@@ -106,11 +107,11 @@ if __name__ == '__main__':
     # f, t, Zxx = signal.stft(first_chunk_chan0, fs, nperseg=10000)
     # f, t, Zxx = signal.spectrogram(first_chunk_chan0, fs, nperseg=segment_size)
 
-    detect_harmonics(('E', 2), first_chunk_chan0, fs)
-    detect_harmonics(('A', 2), first_chunk_chan0, fs)
-    detect_harmonics(('D', 3), first_chunk_chan0, fs)
-    detect_harmonics(('G', 3), first_chunk_chan0, fs)
-    detect_harmonics(('B', 3), first_chunk_chan0, fs)
+    # detect_harmonics(('E', 2), first_chunk_chan0, fs)
+    # detect_harmonics(('A', 2), first_chunk_chan0, fs)
+    # detect_harmonics(('D', 3), first_chunk_chan0, fs)
+    # detect_harmonics(('G', 3), first_chunk_chan0, fs)
+    # detect_harmonics(('B', 3), first_chunk_chan0, fs)
     detect_harmonics(('E', 4), first_chunk_chan0, fs)
     plt.legend()
     plt.show()
