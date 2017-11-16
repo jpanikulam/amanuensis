@@ -78,9 +78,35 @@ def detect_harmonics(note_name, audio_signal, fs):
         # axes[i - 1].plot(times, present_harmonics[:, i - 1] > min_power, label="{}".format(i))
 
 
+def correlate(harmonic_freq, audio_signal, fs):
+    correlation = compare(harmonic_freq, audio_signal, fs)
+    box_filter = np.ones(fs * 0.1)
+    correlation_power = np.sqrt(signal.fftconvolve(np.abs(correlation) ** 2.0, box_filter, 'same'))
+    return correlation_power
+
+
+# def find_integer_contributors(freq):
+    # for f in
+
+def generate_harmonic_image(audio_signal, fs):
+    powers = []
+    note_freqs = sorted(notes.notes.values())
+
+    # int(0.1 * fs)
+
+    for freq in note_freqs:
+        print "f: {} Hz".format(freq)
+        correlation = correlate(freq, audio_signal, fs)
+
+        powers.append(correlation[::10000])
+
+    np_powers = np.array(powers)
+    plt.imshow(np_powers)
+    plt.show()
+
+
 if __name__ == '__main__':
     # fn = "/home/jacob/repos/amanuensis/data/rocky_mtn_high.wav"
-    # fn = "/home/jacob/repos/amanuensis/data/john_denver_rocky_mountain_high.wav"
     # fn = "/home/jacob/repos/amanuensis/data/country_roads.wav"
     fn = "/home/jacob/repos/amanuensis/data/reference_guitar.wav"
     # fn = "/home/jacob/repos/amanuensis/data/tuning_reference.wav"
@@ -90,7 +116,8 @@ if __name__ == '__main__':
     # start_seconds = 1.0
     # end_seconds = 15.0
     start_seconds = 0.0
-    end_seconds = 50.0
+    end_seconds = 70.0
+    # end_seconds = 50.0
     start_samples = fs * start_seconds
     end_samples = fs * end_seconds
 
@@ -98,7 +125,8 @@ if __name__ == '__main__':
     segment_size = fs * segment_seconds
 
     # first_chunk_chan0 = data[5000:50000, 0]
-    first_chunk_chan0 = data[start_samples:end_samples]
+    # first_chunk_chan0 = data[start_samples:end_samples]
+    first_chunk_chan0 = data[start_samples:end_samples, 0]
     # first_chunk_chan0 = data[:, 0]
 
     # wavfile.write('chunk.wav', fs, first_chunk_chan0)
@@ -112,9 +140,10 @@ if __name__ == '__main__':
     # detect_harmonics(('D', 3), first_chunk_chan0, fs)
     # detect_harmonics(('G', 3), first_chunk_chan0, fs)
     # detect_harmonics(('B', 3), first_chunk_chan0, fs)
-    detect_harmonics(('E', 4), first_chunk_chan0, fs)
-    plt.legend()
-    plt.show()
+    # detect_harmonics(('E', 4), first_chunk_chan0, fs)
+    generate_harmonic_image(first_chunk_chan0, fs)
+    # plt.legend()
+    # plt.show()
 
     # plt.figure('Octave 2')
     # comparogram(('E', 2), first_chunk_chan0, fs)
