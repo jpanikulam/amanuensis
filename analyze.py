@@ -81,7 +81,7 @@ def detect_harmonics(note_name, audio_signal, fs):
 def correlate(harmonic_freq, audio_signal, fs):
     correlation = compare(harmonic_freq, audio_signal, fs)
     box_filter = np.ones(fs * 0.1)
-    correlation_power = np.sqrt(signal.fftconvolve(np.abs(correlation) ** 2.0, box_filter, 'same'))
+    correlation_power = np.sqrt(np.abs(signal.fftconvolve(np.abs(correlation) ** 2.0, box_filter, 'same')))
     return correlation_power
 
 
@@ -92,32 +92,43 @@ def generate_harmonic_image(audio_signal, fs):
     powers = []
     note_freqs = sorted(notes.notes.values())
 
+    applied_freqs = []
     # int(0.1 * fs)
-
     for freq in note_freqs:
-        print "f: {} Hz".format(freq)
+        # print "f: {} Hz".format(freq)
         correlation = correlate(freq, audio_signal, fs)
-
-        powers.append(correlation[::10000])
+        powers.append(correlation[::1000])
+        applied_freqs.append(freq)
 
     np_powers = np.array(powers)
-    plt.imshow(np_powers)
+    maxes = np.max(np_powers, axis=0) + 1e-3
+    plt.imshow(np.log(np_powers / maxes))
+
+    x_indices = np.arange(0, np_powers.shape[1], 100)
+    y_indices = np.arange(0, np_powers.shape[0], 20)
+    plt.xticks(x_indices, x_indices * 1000 * (1.0 / fs), fontsize=9)
+    plt.yticks(y_indices, np.array(applied_freqs)[y_indices], fontsize=9)
+
     plt.show()
 
 
 if __name__ == '__main__':
     # fn = "/home/jacob/repos/amanuensis/data/rocky_mtn_high.wav"
     # fn = "/home/jacob/repos/amanuensis/data/country_roads.wav"
-    fn = "/home/jacob/repos/amanuensis/data/reference_guitar.wav"
-    # fn = "/home/jacob/repos/amanuensis/data/tuning_reference.wav"
+    # fn = "/home/jacob/repos/amanuensis/data/reference_guitar.wav"
+    fn = "/home/jacob/repos/amanuensis/data/tuning_reference.wav"
 
     fs, data = wavfile.read(fn)
 
-    # start_seconds = 1.0
-    # end_seconds = 15.0
-    start_seconds = 0.0
-    end_seconds = 70.0
-    # end_seconds = 50.0
+    # start_seconds = 0.6
+    # end_seconds = 1.5
+
+    # start_seconds = 1.00
+    # end_seconds = 1.5
+
+    start_seconds = 1.0
+    end_seconds = 2.5
+
     start_samples = fs * start_seconds
     end_samples = fs * end_seconds
 
@@ -127,36 +138,6 @@ if __name__ == '__main__':
     # first_chunk_chan0 = data[5000:50000, 0]
     # first_chunk_chan0 = data[start_samples:end_samples]
     first_chunk_chan0 = data[start_samples:end_samples, 0]
-    # first_chunk_chan0 = data[:, 0]
-
-    # wavfile.write('chunk.wav', fs, first_chunk_chan0)
-    # exit(0)
-
-    # f, t, Zxx = signal.stft(first_chunk_chan0, fs, nperseg=10000)
-    # f, t, Zxx = signal.spectrogram(first_chunk_chan0, fs, nperseg=segment_size)
-
-    # detect_harmonics(('E', 2), first_chunk_chan0, fs)
-    # detect_harmonics(('A', 2), first_chunk_chan0, fs)
-    # detect_harmonics(('D', 3), first_chunk_chan0, fs)
-    # detect_harmonics(('G', 3), first_chunk_chan0, fs)
-    # detect_harmonics(('B', 3), first_chunk_chan0, fs)
-    # detect_harmonics(('E', 4), first_chunk_chan0, fs)
     generate_harmonic_image(first_chunk_chan0, fs)
-    # plt.legend()
-    # plt.show()
 
-    # plt.figure('Octave 2')
-    # comparogram(('E', 2), first_chunk_chan0, fs)
-    # comparogram(('A', 2), first_chunk_chan0, fs)
-    # comparogram(('D', 3), first_chunk_chan0, fs)
-    # comparogram(('G', 3), first_chunk_chan0, fs)
-    # comparogram(('B', 3), first_chunk_chan0, fs)
-    # comparogram(('E', 4), first_chunk_chan0, fs)
-    # plt.legend()
-    # plt.show()
-
-    # plt.pcolormesh(t, f, np.abs(Zxx))
-    # plt.title('STFT Magnitude')
-    # plt.ylabel('Frequency [Hz]')
-    # plt.xlabel('Time [sec]')
-    # plt.show()
+    # wavfile.write('test_chunk.wav', fs, first_chunk_chan0)
